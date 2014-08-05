@@ -6,6 +6,10 @@ class DoesNotExist(Exception):
     pass
 
 
+class MultipleNodesReturned(ValueError):
+    pass
+
+
 class RequiredProperty(Exception):
     def __init__(self, key, cls):
         self.property_name = key
@@ -26,8 +30,23 @@ class CypherException(Exception):
 
     def __str__(self):
         trace = "\n    ".join(self.java_trace)
+
         return "\n{0}: {1}\nQuery: {2}\nParams: {3}\nTrace: {4}\n".format(
             self.java_exception, self.message, self.query, repr(self.query_parameters), trace)
+
+
+class TransactionError(Exception):
+    def __init__(self, message, jexception, java_trace, id):
+        self.java_exception = jexception
+        self.id = id
+        self.message = message
+        self.java_trace = java_trace
+
+    def __str__(self):
+        trace = "\n    ".join(self.java_trace)
+
+        return "\nException: {0}\n Transaction ID {1}\nTrace: {2}\n".format(
+                self.java_exception, self.id, self.message, trace)
 
 
 def _obj_to_str(obj):
@@ -70,7 +89,7 @@ class NotConnected(Exception):
         self.node2 = node2
 
     def __str__(self):
-        msg = "Error preforming '{0}' - ".format(self.action)
+        msg = "Error performing '{0}' - ".format(self.action)
         msg += "Node {0} of type '{1}' is not connected to {2} of type '{3}'".format(
             self.node1._id, self.node1.__class__.__name__,
             self.node2._id, self.node2.__class__.__name__)

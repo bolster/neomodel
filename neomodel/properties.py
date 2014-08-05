@@ -1,6 +1,5 @@
 from .exception import InflateError, DeflateError, RequiredProperty
 from datetime import datetime, date
-from .relationship_manager import RelationshipDefinition, RelationshipManager
 import os
 import types
 import pytz
@@ -20,7 +19,7 @@ class PropertyManager(object):
 
         for key, val in self.defined_properties(rels=False, aliases=False).items():
             # handle default values
-            if not key in kwargs or kwargs[key] is None:
+            if key not in kwargs or kwargs[key] is None:
                 if hasattr(val, 'has_default') and val.has_default:
                     setattr(self, key, val.default_value())
                 else:
@@ -43,6 +42,7 @@ class PropertyManager(object):
 
     @property
     def __properties__(self):
+        from .relationship_manager import RelationshipManager
         props = {}
         for key, value in self.__dict__.items():
             if not (key.startswith('_') or value is None
@@ -66,6 +66,7 @@ class PropertyManager(object):
 
     @classmethod
     def defined_properties(cls, aliases=True, properties=True, rels=True):
+        from .relationship_manager import RelationshipDefinition
         props = {}
         for scls in reversed(cls.mro()):
             for key, prop in scls.__dict__.items():
@@ -159,7 +160,7 @@ class ArrayProperty(Property):
         return list(value)
 
     def default_value(self):
-        return list(super(IntegerProperty, self).default_value())
+        return list(super(ArrayProperty, self).default_value())
 
 
 class FloatProperty(Property):
